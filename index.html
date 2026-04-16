@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Bald Dev CRM</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Mono:ital,wght@0,300;0,400;0,500;1,400&family=Syne:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <div id="crm-root">
+
+    <!-- TOP BAR -->
+    <div class="topbar">
+      <div class="logo">
+        <div class="logo-dot"></div>
+        BALD DEV
+      </div>
+      <div class="nav-tabs">
+        <button class="nav-tab active" onclick="switchTab('dashboard')"><span class="icon">◈</span> Dashboard</button>
+        <button class="nav-tab" onclick="switchTab('projects')"><span class="icon">⬡</span> Projects</button>
+        <button class="nav-tab" onclick="switchTab('tasks')"><span class="icon">◻</span> Tasks</button>
+        <button class="nav-tab" onclick="switchTab('time')"><span class="icon">◷</span> Time</button>
+        <button class="nav-tab" onclick="switchTab('finance')"><span class="icon">◈</span> Finance</button>
+        <button class="nav-tab" onclick="switchTab('invoice')"><span class="icon">◧</span> Invoices</button>
+        <button class="nav-tab" onclick="switchTab('goals')"><span class="icon">◉</span> Goals</button>
+        <button class="nav-tab" onclick="switchTab('ai')"><span class="icon">✦</span> AI Assistant</button>
+      </div>
+      <button class="btn btn-sm" id="api-key-btn" onclick="openApiKeyModal()" title="Set Anthropic API Key">🔑 API Key</button>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div class="content">
+
+      <!-- DASHBOARD -->
+      <div id="panel-dashboard" class="panel active">
+        <div class="grid-4" id="dash-metrics"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-header">
+              <span class="section-title">Active Projects</span>
+              <button class="btn btn-sm" onclick="switchTab('projects')">View all</button>
+            </div>
+            <div id="dash-projects"></div>
+          </div>
+          <div class="card">
+            <div class="section-header">
+              <span class="section-title">Today's Focus</span>
+              <button class="btn btn-sm btn-primary" onclick="aiQuick('Give me a prioritized task plan for today based on my open tasks and projects')">✦ AI Plan</button>
+            </div>
+            <div id="dash-tasks"></div>
+          </div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-header"><span class="section-title">Revenue (last 6 months)</span></div>
+            <div class="chart-bar-wrap" id="dash-chart"></div>
+          </div>
+          <div class="card">
+            <div class="section-header"><span class="section-title">Goals Progress</span></div>
+            <div id="dash-goals"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PROJECTS -->
+      <div id="panel-projects" class="panel">
+        <div class="section-header">
+          <span class="section-title">Projects</span>
+          <button class="btn btn-primary" onclick="openModal('project')">+ New Project</button>
+        </div>
+        <div id="project-list" class="grid-2"></div>
+      </div>
+
+      <!-- TASKS -->
+      <div id="panel-tasks" class="panel">
+        <div class="section-header">
+          <span class="section-title">Tasks</span>
+          <div style="display:flex;gap:8px">
+            <select id="task-filter" onchange="renderTasks()" style="width:160px">
+              <option value="">All projects</option>
+            </select>
+            <button class="btn btn-primary" onclick="openModal('task')">+ New Task</button>
+          </div>
+        </div>
+        <div class="card">
+          <div id="task-list"></div>
+        </div>
+      </div>
+
+      <!-- TIME -->
+      <div id="panel-time" class="panel">
+        <div class="grid-3">
+          <div class="metric-card"><div class="metric-label">Today</div><div class="metric-val" id="time-today">0h</div></div>
+          <div class="metric-card"><div class="metric-label">This Week</div><div class="metric-val" id="time-week">0h</div></div>
+          <div class="metric-card"><div class="metric-label">Billable Est.</div><div class="metric-val" id="time-bill">$0</div></div>
+        </div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-header"><span class="section-title">Log Time</span></div>
+            <div class="form-row"><label>Project</label><select id="te-project"><option value="">Select project</option></select></div>
+            <div class="form-2">
+              <div class="form-row"><label>Duration (hours)</label><input type="number" id="te-hours" placeholder="1.5" step="0.25"></div>
+              <div class="form-row"><label>Date</label><input type="date" id="te-date"></div>
+            </div>
+            <div class="form-row"><label>Notes</label><input type="text" id="te-notes" placeholder="What did you work on?"></div>
+            <button class="btn btn-primary" style="width:100%" onclick="logTime()">Log Time Entry</button>
+          </div>
+          <div class="card">
+            <div class="section-header"><span class="section-title">Recent Entries</span></div>
+            <div id="time-entries" class="scrollable"></div>
+          </div>
+        </div>
+        <div class="card" style="margin-top:0">
+          <div class="section-header"><span class="section-title">Week Overview</span></div>
+          <div id="time-chart" class="chart-bar-wrap"></div>
+        </div>
+      </div>
+
+      <!-- FINANCE -->
+      <div id="panel-finance" class="panel">
+        <div class="grid-4" id="finance-metrics"></div>
+        <div class="grid-2">
+          <div class="card">
+            <div class="section-header">
+              <span class="section-title">Transactions</span>
+              <button class="btn btn-primary btn-sm" onclick="openModal('txn')">+ Add</button>
+            </div>
+            <div id="txn-list" class="scrollable"></div>
+          </div>
+          <div class="card">
+            <div class="section-header"><span class="section-title">Spending by Category</span></div>
+            <div class="chart-bar-wrap" id="finance-chart"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- INVOICES -->
+      <div id="panel-invoice" class="panel">
+        <div class="grid-2">
+          <div>
+            <div class="section-header">
+              <span class="section-title">Invoices</span>
+              <button class="btn btn-primary" onclick="openModal('invoice')">+ New Invoice</button>
+            </div>
+            <div id="invoice-list" class="card scrollable"></div>
+          </div>
+          <div class="card">
+            <div class="section-title" style="margin-bottom:12px">Preview</div>
+            <div id="invoice-preview"></div>
+            <div style="margin-top:12px">
+              <button class="btn btn-primary btn-sm" onclick="printInvoice()">🖨️ Print / Save PDF</button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- GOALS -->
+      <div id="panel-goals" class="panel">
+        <div class="section-header">
+          <span class="section-title">Developer Goals @ Bald</span>
+          <button class="btn btn-primary" onclick="openModal('goal')">+ New Goal</button>
+        </div>
+        <div id="goal-list" class="grid-2"></div>
+      </div>
+
+      <!-- AI ASSISTANT -->
+      <div id="panel-ai" class="panel">
+        <div class="section-header"><span class="section-title">✦ AI Assistant</span></div>
+        <div id="no-key-warning" class="warning-box" style="display:none">
+          ⚠️ No API key set. Click the <strong>🔑 API Key</strong> button in the top right to add your Anthropic API key and enable AI features.
+        </div>
+        <div class="ai-box" style="margin-bottom:12px">
+          <div style="font-size:12px;font-weight:600;color:#0F6E56;margin-bottom:6px">Ask anything about your work</div>
+          <div class="ai-input-row">
+            <input type="text" id="ai-main-input" placeholder="How should I prioritize my tasks? Help me plan my week..." onkeydown="if(event.key==='Enter') askAI()">
+            <button class="btn btn-primary" onclick="askAI()">Ask ✦</button>
+          </div>
+          <div class="ai-thinking" id="ai-thinking">Thinking...</div>
+          <div class="ai-response" id="ai-response"></div>
+        </div>
+        <div class="grid-3">
+          <button class="btn quick-btn" onclick="aiQuick('Give me a prioritized task plan for today based on my projects and open tasks')">
+            <span class="quick-icon">◷</span><span>Plan my day</span>
+          </button>
+          <button class="btn quick-btn" onclick="aiQuick('Review my project progress and tell me what needs the most urgent attention')">
+            <span class="quick-icon">⬡</span><span>Project review</span>
+          </button>
+          <button class="btn quick-btn" onclick="aiQuick('Give me a weekly time management strategy for a developer at Bald')">
+            <span class="quick-icon">✦</span><span>Time strategy</span>
+          </button>
+          <button class="btn quick-btn" onclick="aiQuick('Help me break down my biggest active project into smaller, achievable tasks with estimates')">
+            <span class="quick-icon">◈</span><span>Break down tasks</span>
+          </button>
+          <button class="btn quick-btn" onclick="aiQuick('What are the best practices for developer goal-setting and career growth at a startup?')">
+            <span class="quick-icon">◉</span><span>Career growth tips</span>
+          </button>
+          <button class="btn quick-btn" onclick="aiQuick('Help me write a professional invoice follow-up message for an overdue invoice')">
+            <span class="quick-icon">◧</span><span>Invoice help</span>
+          </button>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+
+    <!-- MODALS -->
+    <div class="modal-backdrop" id="modal-backdrop">
+      <div class="modal" id="modal-content"></div>
+    </div>
+
+    <!-- API KEY MODAL -->
+    <div class="modal-backdrop" id="apikey-backdrop">
+      <div class="modal">
+        <div class="modal-title">🔑 Anthropic API Key</div>
+        <p style="font-size:13px;color:var(--t2);margin-bottom:12px;line-height:1.6">
+          Your API key is stored only in your browser's localStorage — it never leaves your device. Get yours at <a href="https://console.anthropic.com" target="_blank" style="color:var(--acc)">console.anthropic.com</a>.
+        </p>
+        <div class="form-row">
+          <label>API Key</label>
+          <input type="password" id="apikey-input" placeholder="sk-ant-...">
+        </div>
+        <div style="display:flex;gap:8px;margin-top:12px">
+          <button class="btn btn-primary" style="flex:1" onclick="saveApiKey()">Save Key</button>
+          <button class="btn btn-danger btn-sm" onclick="clearApiKey()">Clear</button>
+          <button class="btn" onclick="closeApiKeyModal()">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+  </div><!-- /crm-root -->
+
+  <script src="app.js"></script>
+</body>
+</html>
